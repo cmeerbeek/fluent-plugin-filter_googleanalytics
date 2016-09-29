@@ -6,6 +6,7 @@ module Fluent
 
     # Primary Splunk configuration parameters
     config_param :filter_on, :string, :default => 'hour', :required => true
+    config_param :pos_file , :string, :default => '/var/log/td-agent/last_filter_option.yml', :required => false
 
     def configure(conf)
       super
@@ -13,10 +14,13 @@ module Fluent
       filter_on = conf['filter_on']
       log.debug "filter_googleanalytics: filter data for dimension: #{filter_on}"
 
-      if File.exist? ("last_filter_option.yml")
-        @last_filter = YAML.load_file("last_filter_option.yml")
+      pos_file = conf['pos_file']
+      log.debug "filter_googleanalytics: get latest position from #{pos_file}"
+
+      if File.exist? (pos_file)
+        @last_filter = YAML.load_file(pos_file)
       else
-        log.warn "filter_googleanalytics: file last_filter_option.yml does not exist."
+        log.warn "filter_googleanalytics: position file does not exist."
         @last_filter = Hash['last_update' => 33]
       end
 
@@ -51,7 +55,8 @@ module Fluent
         if result != nil
           @last_filter['last_update'] = record_dimension
           log.debug "filter_googleanalytics: last_update is #{record_dimension}"
-          File.open('last_filter_option.yml', File::WRONLY|File::CREAT) do |h| 
+          file_path = File.expand_path(File.dirname(__FILE__))
+          File.open("#{pos_file}", File::WRONLY|File::CREAT) do |h| 
             h.write @last_filter.to_yaml
           end
         end

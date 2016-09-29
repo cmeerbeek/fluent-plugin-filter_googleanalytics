@@ -22,6 +22,7 @@ A filter plugin for Fluentd to make sure only recent data (based on time) is sen
 <filter googleanalytics>
   type googleanalytics
   filter_on hour
+  pos_file '/var/log/td-agent/last_filter_option.yml'
 </filter>
 
 <match **>
@@ -36,6 +37,17 @@ Possible values:
 * day
 * hour
 * minute
+
+This option is required.
+
+## config: pos_file
+
+The location of a local config-file which captures the last data written.
+If the fluentd or td-agent restarts it will not read data which was already parsed.
+
+* The default value is '/var/log/td-agent/last_filter_option.yml'.
+* Make sure the user which runs td-agent or fluentd has write permissions to this folder.
+* This option is not required
 
 ## ChangeLog
 
